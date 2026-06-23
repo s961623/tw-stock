@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台股查詢｜輸入股票代號</title>
+<style>
+  :root{--bg:#0f172a;--card:#1e293b;--line:#334155;--txt:#e2e8f0;--sub:#94a3b8;
+    --accent:#3b82f6;--bad:#64748b;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;line-height:1.5;padding:24px;}
+  .wrap{max-width:760px;margin:0 auto;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .hint{color:var(--sub);font-size:13px;margin:0 0 6px;}
+  .meta{color:var(--bad);font-size:12px;margin:0 0 18px;}
+  .searchbar{display:flex;gap:10px;margin-bottom:14px;}
+  #code{flex:1;padding:14px 16px;font-size:20px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--txt);outline:none;letter-spacing:2px;}
+  #code:focus{border-color:var(--accent);}
+  button{padding:0 22px;font-size:16px;border:none;border-radius:12px;background:var(--accent);
+    color:#fff;cursor:pointer;font-weight:600;}
+  .examples{font-size:13px;color:var(--sub);margin-bottom:18px;}
+  .examples span{display:inline-block;background:var(--card);border:1px solid var(--line);
+    padding:3px 10px;border-radius:8px;margin:3px 4px 0 0;cursor:pointer;}
+  .status{font-size:13px;color:var(--sub);min-height:20px;margin-bottom:14px;}
+  .err{color:#f59e0b;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+    margin-bottom:16px;display:none;}
+  .name{font-size:24px;font-weight:700;}
+  .name .mkt{font-size:13px;font-weight:500;color:#fff;background:var(--accent);
+    padding:2px 10px;border-radius:999px;margin-left:10px;vertical-align:middle;}
+  .date{color:var(--sub);font-size:12px;margin:4px 0 16px;}
+  .sec-title{font-size:13px;color:var(--sub);margin:18px 0 8px;font-weight:600;
+    border-left:3px solid var(--accent);padding-left:8px;}
+  .sec-title.muted{border-color:var(--bad);}
+  table{width:100%;border-collapse:collapse;}
+  td{padding:9px 4px;border-bottom:1px solid var(--line);font-size:15px;}
+  td.k{color:var(--sub);width:46%;}
+  td.v{font-weight:600;text-align:right;}
+  td.v.na{color:var(--bad);font-weight:400;}
+  .foot{color:var(--bad);font-size:12px;margin-top:24px;text-align:center;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>台股查詢</h1>
+  <p class="hint">輸入股票代號，查最新數據。資料來源：證交所／櫃買開放資料。</p>
+  <p class="meta" id="meta">載入資料中…</p>
+
+  <div class="searchbar">
+    <input id="code" inputmode="numeric" placeholder="輸入股票代號，例如 3149" autocomplete="off">
+    <button id="go">查詢</button>
+  </div>
+  <div class="examples">試試：
+    <span data-c="3149">3149 正達</span>
+    <span data-c="3131">3131 弘塑</span>
+    <span data-c="6664">6664 群翊</span>
+    <span data-c="2330">2330 台積電</span>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="card" id="card">
+    <div class="name" id="cname"></div>
+    <div class="date" id="cdate"></div>
+    <div id="body"></div>
+  </div>
+
+  <div class="foot">
+    投信%、自營商%、董監持股、大戶持股等欄位目前無免費官方即時 API，故顯示「未取得」。<br>
+    資料每日更新一次（收盤後）。本工具僅供研究參考，非投資建議。
+  </div>
+</div>
+
+<script>
+let DB = null;
+const statusEl = document.getElementById('status');
+
+async function load(){
+  try{
+    const [s, m] = await Promise.all([
+      fetch('./data/stocks.json',{cache:'no-store'}).then(r=>r.json()),
+      fetch('./data/meta.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    ]);
+    DB = s;
+    document.getElementById('meta').textContent =
+      (m? `資料更新：${m.updated}　｜　行情日 上市 ${m.twse_date}／上櫃 ${m.tpex_date}　｜　共 ${m.count} 檔` : '資料已載入');
+  }catch(e){
+    document.getElementById('meta').innerHTML =
+      '<span class="err">尚未產生資料。請先到 GitHub 的 Actions 頁面手動執行一次「更新台股資料」，等它跑完再重新整理。</span>';
+  }
+}
+
+function row(k, v, na){
+  if(v===null||v===undefined||v===''){
+    return `<tr><td class="k">${k}</td><td class="v na">未取得${na?'（'+na+'）':''}</td></tr>`;
+  }
+  return `<tr><td class="k">${k}</td><td class="v">${v}</td></tr>`;
+}
+
+function search(){
+  const code = document.getElementById('code').value.trim().toUpperCase();
+  document.getElementById('card').style.display='none';
+  if(!DB){ statusEl.innerHTML='<span class="err">資料尚未載入完成，請稍候或重新整理。</span>'; return; }
+  if(!/^\d{4}[A-Z]?$/.test(code)){ statusEl.textContent='請輸入 4 位數股票代號（例如 3149）。'; return; }
+  const d = DB[code];
+  if(!d){ statusEl.textContent='查無此代號（'+code+'）。請確認是否為上市／上櫃股票。'; return; }
+  statusEl.textContent='';
+
+  const main =
+    row('最新收盤價', d.close)+
+    row('本益比 PE', d.pe)+
+    row('殖利率 %', d.yield)+
+    row('股價淨值比', d.pb)+
+    row('每股淨值(推算)', d.bvps)+
+    row('毛利率 %'+(d.gm&&d.gm_season?`（${d.gm_season}）`:''), d.gm)+
+    row('實收資本額', d.capital)+
+    row('外資持股 %', d.foreign, d.market==='上市'?'上市僅前20名有API':'');
+  const muted =
+    row('投信持股 %', null,'無免費API')+
+    row('自營商持股 %', null,'無免費API')+
+    row('董監持股 %', null,'無免費API')+
+    row('400張大戶 %', null,'無免費API')+
+    row('1000張大戶 %', null,'無免費API');
+
+  document.getElementById('cname').innerHTML = (d.name||code)+` <span class="mkt">${d.market} ${code}</span>`;
+  document.getElementById('cdate').textContent = d.date?('行情日期：'+d.date):'';
+  document.getElementById('body').innerHTML =
+    `<div class="sec-title">可自動取得</div><table>${main}</table>`+
+    `<div class="sec-title muted">目前無免費即時來源</div><table>${muted}</table>`;
+  document.getElementById('card').style.display='block';
+}
+
+document.getElementById('go').addEventListener('click', search);
+document.getElementById('code').addEventListener('keydown', e=>{ if(e.key==='Enter') search(); });
+document.querySelectorAll('.examples span').forEach(s=>{
+  s.addEventListener('click', ()=>{ document.getElementById('code').value=s.dataset.c; search(); });
+});
+load();
+</script>
+</body>
+</html>
