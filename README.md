@@ -58,6 +58,18 @@
 - 想立刻更新：到 Actions → 更新台股資料 → Run workflow。
 - 想改外觀或欄位：改 `index.html`；想改抓的資料：改 `scripts/fetch_data.py`。
 
+## 公司簡介說明
+
+- **產業別、董事長、總經理、成立日、上市/上櫃日、官網、地址**：全部股票自動帶入（來自交易所基本資料）。
+- **一句話業務描述**：放在可自行編輯的 `data/descriptions.json`。沒有免費的全股票描述 API，所以這個檔先寫好你關注的供應鏈個股；其餘股票會顯示產業別與官網連結。
+  - 要新增描述：編輯 `data/descriptions.json`，照格式加一行 `"股票代號": "你的描述"`，commit 後網頁即生效。
+
+## 更新網站檔案（這次新增公司簡介後要做一次）
+
+到 repo 首頁 → **Add file → Upload files** → 把 `taiwan-stock-web` 裡的
+`index.html`、`scripts/`、`data/` 重新拖進去（`.github/` 已存在、可不用動）→ Commit。
+接著到 **Actions → 更新台股資料 → Run workflow** 跑一次，基本資料就會寫進去。
+
 ## 限制
 
 - 投信%、自營商%、董監持股、400/1000張大戶持股 **沒有免費官方即時 API**，所以顯示「未取得」。

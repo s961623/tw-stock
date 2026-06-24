@@ -30,7 +30,13 @@
   .name{font-size:24px;font-weight:700;}
   .name .mkt{font-size:13px;font-weight:500;color:#fff;background:var(--accent);
     padding:2px 10px;border-radius:999px;margin-left:10px;vertical-align:middle;}
+  .name .tag{font-size:12px;font-weight:500;color:var(--txt);background:#0b1220;
+    border:1px solid var(--line);padding:2px 10px;border-radius:999px;margin-left:6px;vertical-align:middle;}
   .date{color:var(--sub);font-size:12px;margin:4px 0 16px;}
+  .desc{background:#0b1220;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;font-size:15px;line-height:1.7;margin-bottom:8px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
   .sec-title{font-size:13px;color:var(--sub);margin:18px 0 8px;font-weight:600;
     border-left:3px solid var(--accent);padding-left:8px;}
   .sec-title.muted{border-color:var(--bad);}
@@ -74,16 +80,17 @@
 </div>
 
 <script>
-let DB = null;
+let DB = null, DESC = {};
 const statusEl = document.getElementById('status');
 
 async function load(){
   try{
-    const [s, m] = await Promise.all([
+    const [s, m, d] = await Promise.all([
       fetch('./data/stocks.json',{cache:'no-store'}).then(r=>r.json()),
       fetch('./data/meta.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+      fetch('./data/descriptions.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>({})),
     ]);
-    DB = s;
+    DB = s; DESC = d || {};
     document.getElementById('meta').textContent =
       (m? `資料更新：${m.updated}　｜　行情日 上市 ${m.twse_date}／上櫃 ${m.tpex_date}　｜　共 ${m.count} 檔` : '資料已載入');
   }catch(e){
@@ -124,10 +131,28 @@ function search(){
     row('400張大戶 %', null,'無免費API')+
     row('1000張大戶 %', null,'無免費API');
 
-  document.getElementById('cname').innerHTML = (d.name||code)+` <span class="mkt">${d.market} ${code}</span>`;
+  const desc = DESC[code];
+  const webRow = d.web
+    ? `<tr><td class="k">公司官網</td><td class="v"><a href="${d.web}" target="_blank" rel="noopener">前往官網 ↗</a></td></tr>`
+    : row('公司官網', null);
+  const intro =
+    (desc ? `<div class="desc">${desc}</div>` : '') +
+    `<table>`+
+    row('產業別', d.industry)+
+    row('董事長', d.chairman)+
+    row('總經理', d.manager)+
+    row('成立日期', d.founded)+
+    row(d.market+'日期', d.listed)+
+    webRow+
+    row('地址', d.addr)+
+    `</table>`;
+
+  const tag = d.industry ? ` <span class="tag">${d.industry}</span>` : '';
+  document.getElementById('cname').innerHTML = (d.name||code)+` <span class="mkt">${d.market} ${code}</span>`+tag;
   document.getElementById('cdate').textContent = d.date?('行情日期：'+d.date):'';
   document.getElementById('body').innerHTML =
-    `<div class="sec-title">可自動取得</div><table>${main}</table>`+
+    `<div class="sec-title">公司簡介</div>${intro}`+
+    `<div class="sec-title">最新行情與財務</div><table>${main}</table>`+
     `<div class="sec-title muted">目前無免費即時來源</div><table>${muted}</table>`;
   document.getElementById('card').style.display='block';
 }
