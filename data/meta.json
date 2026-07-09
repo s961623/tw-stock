@@ -1,12 +1,9 @@
 {
-  "updated": "2026-07-08 08:07 UTC",
-  "count": 2384,
+  "updated": "2026-07-09 09:04 UTC",
+  "count": 2385,
   "twse_count": 1370,
-  "tpex_count": 1014,
-  "twse_date": "2026/07/07",
-  "tpex_date": "2026/07/08",
-  "errors": {
-    "BWIBBU_ALL": "URLError: <urlopen error [Errno 104] Connection reset by peer>",
-    "t187ap17_L": "URLError: <urlopen error [Errno 104] Connection reset by peer>"
-  }
+  "tpex_count": 1015,
+  "twse_date": "2026/07/08",
+  "tpex_date": "2026/07/09",
+  "errors": {}
 }
