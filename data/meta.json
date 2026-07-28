@@ -1,11 +1,9 @@
 {
-  "updated": "2026-07-27 09:04 UTC",
-  "count": 2387,
+  "updated": "2026-07-28 08:09 UTC",
+  "count": 2389,
   "twse_count": 1374,
-  "tpex_count": 1013,
-  "twse_date": "2026/07/24",
-  "tpex_date": "2026/07/27",
-  "errors": {
-    "mopsfin_t187ap03_O": "IncompleteRead: IncompleteRead(622200 bytes read, 449635 more expected)"
-  }
+  "tpex_count": 1015,
+  "twse_date": "2026/07/27",
+  "tpex_date": "2026/07/28",
+  "errors": {}
 }
