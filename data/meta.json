@@ -1,11 +1,9 @@
 {
-  "updated": "2026-10-07 12:10 UTC",
-  "count": 2400,
+  "updated": "2026-10-08 12:19 UTC",
+  "count": 2401,
   "twse_count": 1383,
-  "tpex_count": 1017,
-  "twse_date": "2026/10/06",
-  "tpex_date": "2026/10/07",
-  "errors": {
-    "tpex_mainboard_peratio_analysis": "HTTPError: HTTP Error 520: <none>"
-  }
+  "tpex_count": 1018,
+  "twse_date": "2026/10/07",
+  "tpex_date": "2026/10/08",
+  "errors": {}
 }
